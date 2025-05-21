@@ -29,8 +29,8 @@ services:
       - backend
     env_file:
       - ./frontend/.env
-    volumes:
-      - ./frontend:/app
+    # volumes:
+    #   - ./frontend:/app
 
 volumes:
   db_data:

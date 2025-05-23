@@ -12,8 +12,8 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'User login' })
   @ApiBody({ type: LoginDto })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'JWT access token and user data returned.',
     schema: {
       type: 'object',
@@ -25,15 +25,18 @@ export class AuthController {
             id: { type: 'number' },
             username: { type: 'string' },
             email: { type: 'string' },
-            role: { type: 'string' }
-          }
-        }
-      }
-    }
+            role: { type: 'string' },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials.' })
   async login(@Body() body: LoginDto) {
-    const user = await this.authService.validateUser(body.username, body.password);
+    const user = await this.authService.validateUser(
+      body.username,
+      body.password,
+    );
     if (!user) {
       throw new UnauthorizedException('Invalid credentials.');
     }

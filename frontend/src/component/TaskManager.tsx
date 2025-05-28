@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { fetchFromApi } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 
-type TaskStatus = "todo" | "in-progress" | "completed";
+type TaskStatus = "todo" | "inprogress" | "testing" | "completed";
 
 type Task = {
   id: number;
@@ -69,7 +69,7 @@ export default function TaskManager() {
 
     try {
       const updatedTask = await fetchFromApi(`/tasks/${editingTask.id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(editingTask),
       });
       setTasks(
@@ -96,7 +96,7 @@ export default function TaskManager() {
   const handleStatusChange = async (task: Task, newStatus: TaskStatus) => {
     try {
       const updatedTask = await fetchFromApi(`/tasks/${task.id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify({ ...task, status: newStatus }),
       });
       setTasks(tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
@@ -109,8 +109,10 @@ export default function TaskManager() {
     switch (status) {
       case "todo":
         return "bg-yellow-100 text-yellow-800";
-      case "in-progress":
+      case "inprogress":
         return "bg-blue-100 text-blue-800";
+      case "testing":
+        return "bg-purple-100 text-purple-800";
       case "completed":
         return "bg-green-100 text-green-800";
       default:
@@ -118,14 +120,6 @@ export default function TaskManager() {
     }
   };
 
-  // Place this check just before the return statement
-  if (typeof window !== "undefined" && !user) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -175,7 +169,7 @@ export default function TaskManager() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
               <div className="p-6">
-                <h2 className="text-xl font-semibold mb-4">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">
                   {editingTask ? "Edit Task" : "Create New Task"}
                 </h2>
                 <div className="space-y-4">
@@ -185,7 +179,7 @@ export default function TaskManager() {
                     </label>
                     <input
                       type="text"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
                       placeholder="Enter task title"
                       value={editingTask ? editingTask.title : newTask.title}
                       onChange={(e) =>
@@ -204,7 +198,7 @@ export default function TaskManager() {
                       Description
                     </label>
                     <textarea
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
                       placeholder="Enter task description"
                       rows={3}
                       value={
@@ -230,7 +224,7 @@ export default function TaskManager() {
                       Status
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
                       title="Select a status"
                       value={editingTask ? editingTask.status : newTask.status}
                       onChange={(e) => {
@@ -324,7 +318,7 @@ export default function TaskManager() {
                 className="grid grid-cols-12 p-4 border-b hover:bg-gray-50 transition-colors items-center"
               >
                 <div className="col-span-5 md:col-span-4 font-medium">
-                  <div className="line-clamp-1">{task.title}</div>
+                  <div className="line-clamp-1 text-gray-700">{task.title}</div>
                   <div className="md:hidden text-sm text-gray-500 line-clamp-1 mt-1">
                     {task.description}
                   </div>
@@ -386,7 +380,7 @@ export default function TaskManager() {
                     </svg>
                   </button>
                   <select
-                    className="hidden md:block p-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="hidden md:block p-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-gray-500"
                     value={task.status}
                     title="Change Status"
                     onChange={(e) =>
@@ -394,7 +388,8 @@ export default function TaskManager() {
                     }
                   >
                     <option value="todo">To Do</option>
-                    <option value="in-progress">In Progress</option>
+                    <option value="inprogress">In Progress</option>
+                    <option value="testing">Testing</option>
                     <option value="completed">Completed</option>
                   </select>
                 </div>

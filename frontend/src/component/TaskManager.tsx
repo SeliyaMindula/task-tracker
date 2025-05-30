@@ -13,11 +13,19 @@ type Task = {
   description: string;
   status: TaskStatus;
   userId: number | null;
+  user?: {
+    id: number;
+    username: string;
+    email: string;
+    password: string;
+    role: string;
+  };
 };
 
 export default function TaskManager() {
   const { user, logout } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<{ id: number; username: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newTask, setNewTask] = useState<Omit<Task, "id">>({
@@ -28,15 +36,25 @@ export default function TaskManager() {
   });
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-
-  useEffect(() => {
-    fetchTasks();
-  }, [user]);
+  const [selectedUserId, setSelectedUserId] = useState<number | "all">("all");
 
   const fetchTasks = async () => {
     try {
-      const data = await fetchFromApi("/tasks");
-      setTasks(data);
+      const tasksData = await fetchFromApi("/tasks");
+      setTasks(tasksData);
+
+      // Extract unique users from tasks
+      const usersMap = new Map<number, { id: number; username: string }>();
+      tasksData.forEach((task: Task) => {
+        if (task.user) {
+          usersMap.set(task.user.id, {
+            id: task.user.id,
+            username: task.user.username,
+          });
+        }
+      });
+      setUsers(Array.from(usersMap.values()));
+
       setError(null);
     } catch (err: any) {
       setError(err.message);
@@ -44,6 +62,10 @@ export default function TaskManager() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchTasks();
+  }, [user]);
 
   const handleCreateTask = async () => {
     try {
@@ -105,6 +127,11 @@ export default function TaskManager() {
     }
   };
 
+  const filteredTasks =
+    selectedUserId === "all"
+      ? tasks
+      : tasks.filter((task) => task.userId === selectedUserId);
+
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
       case "todo":
@@ -164,6 +191,35 @@ export default function TaskManager() {
           </div>
         )}
 
+        {/* User Filter Dropdown */}
+        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex-1">
+            <label
+              htmlFor="user-filter"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Filter by User
+            </label>
+            <select
+              id="user-filter"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
+              value={selectedUserId}
+              onChange={(e) =>
+                setSelectedUserId(
+                  e.target.value === "all" ? "all" : Number(e.target.value)
+                )
+              }
+            >
+              <option value="all">All Users</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.username}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+                
         {/* Task Form Modal */}
         {isFormOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -260,7 +316,7 @@ export default function TaskManager() {
         )}
 
         {/* Task List */}
-        {tasks.length === 0 ? (
+        {filteredTasks.length === 0 ? (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <svg
               className="mx-auto h-12 w-12 text-gray-400"
@@ -276,9 +332,15 @@ export default function TaskManager() {
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">No tasks</h3>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">
+              {selectedUserId !== "all"
+                ? "No tasks for selected user"
+                : "No tasks"}
+            </h3>
             <p className="mt-1 text-gray-500">
-              Get started by creating a new task.
+              {selectedUserId !== "all"
+                ? "Try selecting a different user"
+                : "Get started by creating a new task."}
             </p>
             <div className="mt-6">
               <button
@@ -306,27 +368,32 @@ export default function TaskManager() {
           <div className="bg-white shadow-sm rounded-lg overflow-hidden">
             {/* Table Header */}
             <div className="grid grid-cols-12 bg-gray-50 p-4 border-b font-medium text-gray-600 uppercase text-xs">
-              <div className="col-span-5 md:col-span-4">Task</div>
-              <div className="hidden md:col-span-4 md:block">Description</div>
-              <div className="col-span-3 md:col-span-2">Status</div>
+              <div className="col-span-5 md:col-span-3">Task</div>
+              <div className="hidden md:col-span-5 md:block">Description</div>
+              <div className="col-span-3 md:col-span-1">User</div>
+              <div className="col-span-3 md:col-span-1">Status</div>
               <div className="col-span-4 md:col-span-2 text-right">Actions</div>
             </div>
 
-            {tasks.map((task) => (
+            {filteredTasks.map((task) => (
               <div
                 key={task.id}
                 className="grid grid-cols-12 p-4 border-b hover:bg-gray-50 transition-colors items-center"
               >
-                <div className="col-span-5 md:col-span-4 font-medium">
+                <div className="col-span-5 md:col-span-3 font-medium">
                   <div className="line-clamp-1 text-gray-700">{task.title}</div>
                   <div className="md:hidden text-sm text-gray-500 line-clamp-1 mt-1">
                     {task.description}
                   </div>
                 </div>
-                <div className="hidden md:col-span-4 md:block text-gray-600">
+                <div className="hidden md:col-span-5 md:block text-gray-600">
                   <div className="line-clamp-2">{task.description}</div>
                 </div>
-                <div className="col-span-3 md:col-span-2">
+                <div className="col-span-3 md:col-span-1 text-sm text-gray-600">
+                  {users.find((u) => u.id === task.userId)?.username ||
+                    "Unknown"}
+                </div>
+                <div className="col-span-3 md:col-span-1">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
                       task.status

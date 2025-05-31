@@ -74,6 +74,7 @@ export default function TaskManager() {
         body: JSON.stringify({ ...newTask, userId: user?.id || null }),
       });
       setTasks([...tasks, createdTask]);
+      fetchTasks(); 
       setNewTask({
         title: "",
         description: "",
@@ -291,7 +292,8 @@ export default function TaskManager() {
                       }}
                     >
                       <option value="todo">To Do</option>
-                      <option value="in-progress">In Progress</option>
+                      <option value="inprogress">In Progress</option>
+                      <option value="testing">Testing</option>
                       <option value="completed">Completed</option>
                     </select>
                   </div>

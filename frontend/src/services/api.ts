@@ -21,7 +21,12 @@ export const fetchFromApi = async (endpoint: string, options: RequestInit = {}) 
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    let error;
+    try {
+      error = await response.json();
+    } catch {
+      error = { message: response.statusText };
+    }
     throw new Error(error.message || "Something went wrong");
   }
 

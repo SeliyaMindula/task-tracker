@@ -46,10 +46,11 @@ export class TasksController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a task by ID' })
-  @ApiResponse({ status: 200, description: 'Task deleted' })
+  @ApiResponse({ status: 200, description: 'Task deleted', schema: { example: { message: 'Task deleted successfully' } } })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  remove(@Param('id') id: string): Promise<void> {
-    return this.tasksService.remove(Number(id));
+  async remove(@Param('id') id: string): Promise<{ message: string }> {
+    await this.tasksService.remove(Number(id));
+    return { message: 'Task deleted successfully' };
   }
 
 }

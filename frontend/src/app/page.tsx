@@ -1,5 +1,5 @@
-import TaskManager from "../component/TaskManager";
+import LoginPage from "./login/page";
 
 export default function Home() {
-  return <TaskManager />;
+  return <LoginPage />;
 }

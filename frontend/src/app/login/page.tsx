@@ -23,7 +23,7 @@ export default function LoginPage() {
     try {
       await login(username, password);
       router.push("/taskes");
-    } catch (err) {
+    } catch {
       setError("Invalid email or password");
       setLoading(false);
     }
@@ -186,7 +186,7 @@ export default function LoginPage() {
           </div>
         </form>
         <div className="text-center text-sm text-gray-600">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
             Register here
           </Link>

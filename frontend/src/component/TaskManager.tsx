@@ -1,4 +1,3 @@
-// src/components/TaskManager.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -20,6 +19,10 @@ type Task = {
     password: string;
     role: string;
   };
+};
+
+type ApiError = {
+  message: string;
 };
 
 export default function TaskManager() {
@@ -56,8 +59,8 @@ export default function TaskManager() {
       setUsers(Array.from(usersMap.values()));
 
       setError(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError((err as ApiError).message);
     } finally {
       setLoading(false);
     }
@@ -74,7 +77,7 @@ export default function TaskManager() {
         body: JSON.stringify({ ...newTask, userId: user?.id || null }),
       });
       setTasks([...tasks, createdTask]);
-      fetchTasks(); 
+      fetchTasks();
       setNewTask({
         title: "",
         description: "",
@@ -82,8 +85,8 @@ export default function TaskManager() {
         userId: user?.id || null,
       });
       setIsFormOpen(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError((err as ApiError).message);
     }
   };
 
@@ -100,8 +103,8 @@ export default function TaskManager() {
       );
       setEditingTask(null);
       setIsFormOpen(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError((err as ApiError).message);
     }
   };
 
@@ -111,8 +114,8 @@ export default function TaskManager() {
         method: "DELETE",
       });
       setTasks(tasks.filter((task) => task.id !== id));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError((err as ApiError).message);
     }
   };
 
@@ -123,8 +126,8 @@ export default function TaskManager() {
         body: JSON.stringify({ ...task, status: newStatus }),
       });
       setTasks(tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError((err as ApiError).message);
     }
   };
 
@@ -147,7 +150,6 @@ export default function TaskManager() {
         return "bg-gray-100 text-gray-800";
     }
   };
-
 
   if (loading) {
     return (
@@ -220,7 +222,7 @@ export default function TaskManager() {
             </select>
           </div>
         </div>
-                
+
         {/* Task Form Modal */}
         {isFormOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -284,11 +286,13 @@ export default function TaskManager() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
                       title="Select a status"
                       value={editingTask ? editingTask.status : newTask.status}
-                      onChange={(e) => {
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                         const value = e.target.value as TaskStatus;
-                        editingTask
-                          ? setEditingTask({ ...editingTask, status: value })
-                          : setNewTask({ ...newTask, status: value });
+                        if (editingTask) {
+                          setEditingTask({ ...editingTask, status: value });
+                        } else {
+                          setNewTask({ ...newTask, status: value });
+                        }
                       }}
                     >
                       <option value="todo">To Do</option>

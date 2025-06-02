@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchFromApi } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
+import { toast, Toaster } from "react-hot-toast";
 
 type TaskStatus = "todo" | "inprogress" | "testing" | "completed";
 
@@ -85,14 +86,15 @@ export default function TaskManager() {
         userId: user?.id || null,
       });
       setIsFormOpen(false);
+      toast.success("Task created successfully!");
     } catch (err) {
       setError((err as ApiError).message);
+      toast.error((err as ApiError).message || "Failed to create task");
     }
   };
 
   const handleUpdateTask = async () => {
     if (!editingTask) return;
-
     try {
       const updatedTask = await fetchFromApi(`/tasks/${editingTask.id}`, {
         method: "PATCH",
@@ -103,8 +105,10 @@ export default function TaskManager() {
       );
       setEditingTask(null);
       setIsFormOpen(false);
+      toast.success("Task updated successfully!");
     } catch (err) {
       setError((err as ApiError).message);
+      toast.error((err as ApiError).message || "Failed to update task");
     }
   };
 
@@ -114,8 +118,10 @@ export default function TaskManager() {
         method: "DELETE",
       });
       setTasks(tasks.filter((task) => task.id !== id));
+      toast.success("Task deleted successfully!");
     } catch (err) {
       setError((err as ApiError).message);
+      toast.error((err as ApiError).message || "Failed to delete task");
     }
   };
 
@@ -126,8 +132,10 @@ export default function TaskManager() {
         body: JSON.stringify({ ...task, status: newStatus }),
       });
       setTasks(tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+      toast.success("Task status updated!");
     } catch (err) {
       setError((err as ApiError).message);
+      toast.error((err as ApiError).message || "Failed to update status");
     }
   };
 
@@ -161,6 +169,7 @@ export default function TaskManager() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <Toaster position="top-right" />
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>

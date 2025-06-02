@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast, Toaster } from "react-hot-toast";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -22,9 +23,11 @@ export default function LoginPage() {
 
     try {
       await login(username, password);
+      toast.success("Login successful!");
       router.push("/taskes");
     } catch {
       setError("Invalid email or password");
+      toast.error("Invalid email or password");
       setLoading(false);
     }
   };
@@ -42,6 +45,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster position="top-right" />
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
